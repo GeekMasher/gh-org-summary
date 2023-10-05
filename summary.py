@@ -11,16 +11,17 @@ from typing import Any, Optional
 logger = logging.getLogger(__name__)
 
 try:
-  from ghastoolkit import GitHub, CodeScanning, Dependabot, SecretScanning
-  from ghastoolkit.octokit.github import Repository
-  from ghastoolkit.octokit.octokit import RestRequest
-  from ghastoolkit.utils.cli import CommandLine
+    from ghastoolkit import GitHub, CodeScanning, Dependabot, SecretScanning
+    from ghastoolkit.octokit.github import Repository
+    from ghastoolkit.octokit.octokit import RestRequest
+    from ghastoolkit.utils.cli import CommandLine
 except:
-  print("Failed to load `ghastoolkit`")
-  print("please install it")
-  exit(1)
+    print("Failed to load `ghastoolkit`")
+    print("please install it")
+    exit(1)
 
 HEADERS = "owner,name,code_scanning,dependabot,secret_scanning"
+
 
 def saveCache(path: str, data: dict):
     """Save the cache to a file."""
