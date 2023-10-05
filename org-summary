@@ -1,0 +1,8 @@
+#!/bin/bash
+
+if [ "$1" = "install" ]; then
+    pipenv install
+    exit 0
+fi
+
+pipenv run main $@
