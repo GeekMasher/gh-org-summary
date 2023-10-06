@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "3ad8be918bee2d23faa662011b23bf5935944b31464bced99f76077799e97343"
+            "sha256": "b2b5da3e95c9989f998c284585bf67c28d359b6228b5caa683c2182985cfd6b6"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -119,13 +119,10 @@
             "version": "==3.3.0"
         },
         "ghastoolkit": {
-            "hashes": [
-                "sha256:0ec1ccfa0507685305c8f3d50fe0e12495799084bd833b410033fe3763d245ce",
-                "sha256:71e1d1426faf01b791b31388e3192317cb0051e9ff387331a35053fe6f799d0c"
-            ],
-            "index": "pypi",
+            "editable": true,
+            "git": "git+https://github.com/GeekMasher/ghastoolkit",
             "markers": "python_version >= '3.9'",
-            "version": "==0.8.7"
+            "ref": "877cef5b16dee2748e92c878cfb32f961a8bf50e"
         },
         "idna": {
             "hashes": [

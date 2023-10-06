@@ -11,9 +11,15 @@ from typing import Any, Optional
 logger = logging.getLogger(__name__)
 
 try:
-    from ghastoolkit import GitHub, CodeScanning, Dependabot, SecretScanning
-    from ghastoolkit.octokit.github import Repository
-    from ghastoolkit.octokit.octokit import RestRequest
+    from ghastoolkit import (
+        GitHub,
+        Repository,
+        Enterprise,
+        Organization,
+        CodeScanning,
+        Dependabot,
+        SecretScanning,
+    )
     from ghastoolkit.utils.cli import CommandLine
 except:
     print("Failed to load `ghastoolkit`")
@@ -95,18 +101,13 @@ class CLI(CommandLine):
 
         cache = loadCache(cache_path)
 
-        api = RestRequest()
         results = []
 
         try:
-            repositories = api.get("/orgs/{org}/repos")
-            if not isinstance(repositories, list):
-                print("Error getting repositories")
-                return
+            organization = Organization(arguments.github_owner)
+            repositories = organization.getRepositories()
 
-            for repository in repositories:
-                repo = Repository.parseRepository(repository.get("full_name"))
-
+            for repo in repositories:
                 # check cache
                 if cache.get(repo.repo):
                     result = RepositoryData(**cache.get(repo.repo))

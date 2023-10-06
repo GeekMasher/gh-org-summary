@@ -4,7 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
-ghastoolkit = "*"
+ghastoolkit = {editable = true, ref = "enterprise", git = "git+https://github.com/GeekMasher/ghastoolkit"}
 
 [dev-packages]
 black = "*"
