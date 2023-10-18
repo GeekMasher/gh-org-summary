@@ -87,7 +87,7 @@ class CLI(CommandLine):
             "--cache-dir", default=".cache", help="Cache directory"
         )
         parser_caching.add_argument("--cache-ignore-errors", action="store_true")
-        parser_caching.add_argument("--cache-frequency", default=10, type=int)
+        parser_caching.add_argument("--cache-frequency", default=1, type=int)
 
     def run(self, arguments: Namespace):
         print(f"GitHub Organization :: {GitHub.repository.owner}")
@@ -101,13 +101,19 @@ class CLI(CommandLine):
 
         cache = loadCache(cache_path)
 
+        ent = Enterprise()
+        orgs = ent.getOrganizations()
+        print(f" >>>> {len(orgs)} organizations")
+
+        skipped = 0
         results = []
 
         try:
-            organization = Organization(arguments.github_owner)
-            repositories = organization.getRepositories()
+            organization = Organization(GitHub.repository.owner)
+            result = organization.rest.get(f"/orgs/{GitHub.repository.owner}/repos")
 
-            for repo in repositories:
+            for repo in result:
+                repo = Repository.parseRepository(repo.get("full_name"))
                 # check cache
                 if cache.get(repo.repo):
                     result = RepositoryData(**cache.get(repo.repo))
@@ -116,7 +122,11 @@ class CLI(CommandLine):
                         print(f" - {result} (cached, error ignored)")
                         result.error = None
                     else:
-                        print(f" - [C] {result}")
+                        if result.error:
+                            skipped += 1
+                            print(f" - [E] {result}")
+                        else:
+                            print(f" - [C] {result}")
                         results.append(result)
                         continue
 
@@ -129,14 +139,24 @@ class CLI(CommandLine):
                 result = RepositoryData(owner=repo.owner, name=repo.repo)
 
                 try:
-                    result.code_scanning = len(code_scanning.getAlerts())
-                    result.dependabot = len(dependabot.getAlerts())
-                    result.secret_scanning = len(secret_scanning.getAlerts())
+                    if code_scanning.isEnabled():
+                        result.code_scanning = len(code_scanning.getAlerts())
+                    else:
+                        result.code_scanning = -1
+                    if dependabot.isEnabled():
+                        result.dependabot = len(dependabot.getAlerts())
+                    else:
+                        result.dependabot = -1
+                    if secret_scanning.isEnabled():
+                        result.secret_scanning = len(secret_scanning.getAlerts())
+                    else:
+                        result.secret_scanning = -1
 
                 except Exception as e:
                     logger.error(f"Error getting alerts for {repo}")
                     logger.error(e)
                     result.error = str(e)
+                    skipped += 1
 
                 results.append(result)
 
@@ -148,7 +168,9 @@ class CLI(CommandLine):
                     cache_counter = 0
 
         except Exception as e:
-            print(e)
+            logger.error(e)
+            if arguments.debug:
+                raise e
         finally:
             # save cache
             saveCache(cache_path, cache)
@@ -163,6 +185,7 @@ class CLI(CommandLine):
             for result in results:
                 writer.writerow(result.createRow(headers))
 
+        logger.info(f"Skipped `{skipped}` repositories")
 
 if __name__ == "__main__":
     cli = CLI()
