@@ -90,90 +90,96 @@ class CLI(CommandLine):
         parser_caching.add_argument("--cache-frequency", default=1, type=int)
 
     def run(self, arguments: Namespace):
-        print(f"GitHub Organization :: {GitHub.repository.owner}")
-
-        # caching
-        cache_path = os.path.join(
-            arguments.cache_dir, f"{GitHub.repository.owner}.json"
-        )
-        cache_counter = 0
-        os.makedirs(arguments.cache_dir, exist_ok=True)
-
-        cache = loadCache(cache_path)
-
         ent = Enterprise()
-        orgs = ent.getOrganizations()
-        print(f" >>>> {len(orgs)} organizations")
+        if arguments.owner:
+            orgs = [Organization(arguments.owner)]
+        else:
+            logger.info("Getting all organizations on the enterprise")
+            orgs = ent.getOrganizations()
+
+        logger.debug(f"Organizations:  {len(orgs)}")
 
         skipped = 0
         results = []
 
-        try:
-            organization = Organization(GitHub.repository.owner)
-            result = organization.rest.get(f"/orgs/{GitHub.repository.owner}/repos")
+        for organization in orgs:
+            logger.info(f"Organization: {organization.name}")
 
-            for repo in result:
-                repo = Repository.parseRepository(repo.get("full_name"))
-                # check cache
-                if cache.get(repo.repo):
-                    result = RepositoryData(**cache.get(repo.repo))
+            # caching
+            cache_path = os.path.join(
+                arguments.cache_dir, f"{organization.name}.json"
+            )
+            cache_counter = 0
+            os.makedirs(arguments.cache_dir, exist_ok=True)
 
-                    if result.error and arguments.cache_ignore_errors:
-                        print(f" - {result} (cached, error ignored)")
-                        result.error = None
-                    else:
-                        if result.error:
-                            skipped += 1
-                            print(f" - [E] {result}")
+            cache = loadCache(cache_path)
+
+            try:
+                result = organization.rest.get(f"/orgs/{organization.name}/repos")
+
+                for repo in result:
+                    repo = Repository.parseRepository(repo.get("full_name"))
+                    # check cache
+                    if cache.get(repo.repo):
+                        result = RepositoryData(**cache.get(repo.repo))
+
+                        if result.error and arguments.cache_ignore_errors:
+                            print(f" - {result} (cached, error ignored)")
+                            result.error = None
                         else:
-                            print(f" - [C] {result}")
-                        results.append(result)
-                        continue
+                            if result.error:
+                                skipped += 1
+                                print(f" - [E] {result}")
+                            else:
+                                print(f" - [C] {result}")
+                            results.append(result)
+                            continue
 
-                print(f" - [F] {repo}")
+                    print(f" - [F] {repo}")
 
-                code_scanning = CodeScanning(repo)
-                dependabot = Dependabot(repo)
-                secret_scanning = SecretScanning(repo)
+                    code_scanning = CodeScanning(repo)
+                    dependabot = Dependabot(repo)
+                    secret_scanning = SecretScanning(repo)
 
-                result = RepositoryData(owner=repo.owner, name=repo.repo)
+                    result = RepositoryData(owner=repo.owner, name=repo.repo)
 
-                try:
-                    if code_scanning.isEnabled():
-                        result.code_scanning = len(code_scanning.getAlerts())
-                    else:
-                        result.code_scanning = -1
-                    if dependabot.isEnabled():
-                        result.dependabot = len(dependabot.getAlerts())
-                    else:
-                        result.dependabot = -1
-                    if secret_scanning.isEnabled():
-                        result.secret_scanning = len(secret_scanning.getAlerts())
-                    else:
-                        result.secret_scanning = -1
+                    try:
+                        if code_scanning.isEnabled():
+                            result.code_scanning = len(code_scanning.getAlerts())
+                        else:
+                            result.code_scanning = -1
+                        if dependabot.isEnabled():
+                            result.dependabot = len(dependabot.getAlerts())
+                        else:
+                            result.dependabot = -1
+                        if secret_scanning.isEnabled():
+                            result.secret_scanning = len(secret_scanning.getAlerts())
+                        else:
+                            result.secret_scanning = -1
 
-                except Exception as e:
-                    logger.error(f"Error getting alerts for {repo}")
-                    logger.error(e)
-                    result.error = str(e)
-                    skipped += 1
+                    except Exception as e:
+                        logger.error(f"Error getting alerts for {repo}")
+                        if arguments.debug:
+                            logger.error(e)
+                        result.error = str(e)
+                        skipped += 1
 
-                results.append(result)
+                    results.append(result)
 
-                cache_counter += 1
-                if cache_counter >= arguments.cache_frequency:
-                    # save cache
-                    cache[repo.repo] = result.__dict__
-                    saveCache(cache_path, cache)
-                    cache_counter = 0
+                    cache_counter += 1
+                    if cache_counter >= arguments.cache_frequency:
+                        # save cache
+                        cache[repo.repo] = result.__dict__
+                        saveCache(cache_path, cache)
+                        cache_counter = 0
 
-        except Exception as e:
-            logger.error(e)
-            if arguments.debug:
-                raise e
-        finally:
-            # save cache
-            saveCache(cache_path, cache)
+            except Exception as e:
+                logger.error(e)
+                if arguments.debug:
+                    raise e
+            finally:
+                # save cache
+                saveCache(cache_path, cache)
 
         # write to csv
         headers = arguments.headers.split(",")
