@@ -14,7 +14,7 @@ if [ ! -z ${1+x} ]; then
 fi
 
 if [[ $OSTYPE = "msys" ]]; then
-    py.exe $EXTENSION_LOCATION/summary.py $@
+    py.exe "$EXTENSION_LOCATION\\gh-org-summary\\summary.py" $@
 else
     python3 $EXTENSION_LOCATION/summary.py $@
 fi
