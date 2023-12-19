@@ -1,8 +1,13 @@
 #!/bin/bash
+set -eu
 
-if [ "$1" = "install" ]; then
-    pipenv install
-    exit 0
+export EXTENSION_LOCATION="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+
+if [ ! -z ${1+x} ]; then
+    if [ "$1" = "install" ]; then
+        pipenv install --system
+        exit 0
+    fi
 fi
 
-pipenv run main $@
+python $EXTENSION_LOCATION/summary.py $@
