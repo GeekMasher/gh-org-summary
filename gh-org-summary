@@ -13,4 +13,8 @@ if [ ! -z ${1+x} ]; then
     fi
 fi
 
-python3 $EXTENSION_LOCATION/summary.py $@
+if [[ $OSTYPE = "msys" ]]; then
+    py.exe $EXTENSION_LOCATION/summary.py $@
+else
+    python3 $EXTENSION_LOCATION/summary.py $@
+fi
