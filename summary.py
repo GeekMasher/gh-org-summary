@@ -204,5 +204,9 @@ class CLI(CommandLine):
         logger.info(f"Skipped `{skipped}` repositories")
 
 if __name__ == "__main__":
-    cli = CLI()
-    cli.run(cli.parse_args())
+    try:
+        cli = CLI()
+        cli.run(cli.parse_args())
+    except Exception as err:
+        logger.error(err)
+        exit(1)
