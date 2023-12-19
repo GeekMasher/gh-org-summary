@@ -3,6 +3,8 @@ set -eu
 
 export EXTENSION_LOCATION="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 
+pushd $EXTENSION_LOCATION > /dev/null
+
 if [ ! -z ${1+x} ]; then
     if [ "$1" = "install" ]; then
         pipenv install --system
@@ -10,4 +12,6 @@ if [ ! -z ${1+x} ]; then
     fi
 fi
 
-python $EXTENSION_LOCATION/summary.py $@
+python3 $EXTENSION_LOCATION/summary.py $@
+
+popd > /dev/null
