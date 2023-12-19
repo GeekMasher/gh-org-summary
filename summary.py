@@ -90,7 +90,14 @@ class CLI(CommandLine):
         parser_caching.add_argument("--cache-frequency", default=1, type=int)
 
     def run(self, arguments: Namespace):
-        ent = Enterprise()
+        ent = Enterprise(arguments.enterprise)
+
+        logger.info(f"GitHub :: {GitHub.instance}")
+
+        if not GitHub.token:
+            logger.error("No token provided")
+            exit(1)
+
         if arguments.owner:
             orgs = [Organization(arguments.owner)]
         else:
