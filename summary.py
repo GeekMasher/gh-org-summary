@@ -96,7 +96,10 @@ class CLI(CommandLine):
 
         if not GitHub.token:
             logger.error("No token provided")
-            exit(1)
+            GitHub.token = input("Please provide PAT: ")
+            if not GitHub.token:
+                logger.error("No token provided")
+                exit(1)
 
         if arguments.owner:
             orgs = [Organization(arguments.owner)]
