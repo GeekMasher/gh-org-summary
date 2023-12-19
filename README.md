@@ -27,9 +27,9 @@ To install and setup the CLI tool, you can use the following commands:
 # install extension
 gh extension install GeekMasher/gh-org-summary
 # install deps (ghastoolkit)
-gh gh-org-summary install
+gh org-summary install
 # run
-gh gh-org-summary --help
+gh org-summary --help
 # update / upgrade extension
 gh extension upgrade gh-org-summary
 ```
@@ -51,7 +51,7 @@ python ./summary.py --help
 To generate a summary of your GitHub organisation, you can use the following command:
 
 ```bash
-gh gh-org-summary \
+gh org-summary \
     --github-instance "https://github.example.com" \
     --output "./output.csv"
 ```
@@ -61,7 +61,7 @@ gh gh-org-summary \
 The script automatically looks for the `GITHUB_TOKEN` environment variable but you can also supply the token via the `-t` or `--github-token` argument or it will prompt you.
 
 ```bash
-gh gh-org-summary \
+gh org-summary \
     --github-instance "https://github.example.com" \
     --output "./output.csv" \
     --github-token "ghp_1234567890"
