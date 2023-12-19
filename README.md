@@ -54,6 +54,17 @@ gh gh-org-summary \
     --output "./output.csv"
 ```
 
+**Access Token:**
+
+The script automatically looks for the `GITHUB_TOKEN` environment variable but you can also supply the token via the `-t` or `--github-token` argument or it will prompt you.
+
+```bash
+gh gh-org-summary \
+    --github-instance "https://github.example.com" \
+    --output "./output.csv" \
+    --github-token "ghp_1234567890"
+```
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
