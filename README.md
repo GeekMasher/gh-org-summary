@@ -30,6 +30,8 @@ gh extension install GeekMasher/gh-org-summary
 gh gh-org-summary install
 # run
 gh gh-org-summary --help
+# update / upgrade extension
+gh extension upgrade gh-org-summary
 ```
 
 **Install Manually:**
