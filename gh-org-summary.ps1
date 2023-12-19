@@ -5,4 +5,4 @@ if ($args[0] -eq 'install') {
     exit
 }
 
-python3 $PSScriptRoot/summary.py $args
+python3 "$PSScriptRoot/summary.py" $args
