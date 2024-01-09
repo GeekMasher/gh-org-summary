@@ -158,14 +158,16 @@ class CLI(CommandLine):
                             result.code_scanning = len(code_scanning.getAlerts())
                         else:
                             result.code_scanning = -1
-                        if dependabot.isEnabled():
-                            result.dependabot = len(dependabot.getAlerts())
-                        else:
-                            result.dependabot = -1
+                        
                         if secret_scanning.isEnabled():
                             result.secret_scanning = len(secret_scanning.getAlerts())
                         else:
                             result.secret_scanning = -1
+
+                        if dependabot.isEnabled():
+                            result.dependabot = len(dependabot.getAlerts())
+                        else:
+                            result.dependabot = -1
 
                     except Exception as e:
                         logger.error(f"Error getting alerts for {repo}")
