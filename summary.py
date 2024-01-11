@@ -69,8 +69,21 @@ class RepositoryData:
                 result.append(getattr(self, header))
         return result
 
-    def __str__(self) -> str:
+    def isError(self) -> bool:
+        if (
+            self.code_scanning is None
+            or self.dependabot is None
+            or self.secret_scanning is None
+        ):
+            return True
+
         if self.error:
+            return True
+
+        return False
+
+    def __str__(self) -> str:
+        if self.isError():
             return f"{self.owner}/{self.name} (error)"
         return f"{self.owner}/{self.name}"
 
@@ -116,9 +129,7 @@ class CLI(CommandLine):
             logger.info(f"Organization: {organization.name}")
 
             # caching
-            cache_path = os.path.join(
-                arguments.cache_dir, f"{organization.name}.json"
-            )
+            cache_path = os.path.join(arguments.cache_dir, f"{organization.name}.json")
             cache_counter = 0
             os.makedirs(arguments.cache_dir, exist_ok=True)
 
@@ -133,11 +144,11 @@ class CLI(CommandLine):
                     if cache.get(repo.repo):
                         result = RepositoryData(**cache.get(repo.repo))
 
-                        if result.error and arguments.cache_ignore_errors:
+                        if result.isError() and arguments.cache_ignore_errors:
                             print(f" - {result} (cached, error ignored)")
                             result.error = None
                         else:
-                            if result.error:
+                            if result.isError():
                                 skipped += 1
                                 print(f" - [E] {result}")
                             else:
@@ -158,7 +169,7 @@ class CLI(CommandLine):
                             result.code_scanning = len(code_scanning.getAlerts())
                         else:
                             result.code_scanning = -1
-                        
+
                         if secret_scanning.isEnabled():
                             result.secret_scanning = len(secret_scanning.getAlerts())
                         else:
@@ -168,6 +179,9 @@ class CLI(CommandLine):
                             result.dependabot = len(dependabot.getAlerts())
                         else:
                             result.dependabot = -1
+
+                    except KeyboardInterrupt as err:
+                        raise err
 
                     except Exception as e:
                         logger.error(f"Error getting alerts for {repo}")
@@ -184,6 +198,10 @@ class CLI(CommandLine):
                         cache[repo.repo] = result.__dict__
                         saveCache(cache_path, cache)
                         cache_counter = 0
+
+            except KeyboardInterrupt:
+                print("Halting...")
+                break
 
             except Exception as e:
                 logger.error(e)
@@ -204,6 +222,7 @@ class CLI(CommandLine):
                 writer.writerow(result.createRow(headers))
 
         logger.info(f"Skipped `{skipped}` repositories")
+
 
 if __name__ == "__main__":
     try:
